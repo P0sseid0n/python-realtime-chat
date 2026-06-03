@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Chat</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" />
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<div class="app">
+			<header>
+				<h1>Chat Simples</h1>
+				<span class="status">Online agora</span>
+			</header>
+			<main class="chat" id="chat">
+				<div class="msg in">
+					Oi! Me manda uma mensagem.
+					<span class="meta">Agora</span>
+				</div>
+				<div class="msg out">
+					Perfeito, vou testar o input!
+					<span class="meta">Agora</span>
+				</div>
+			</main>
+			<form id="composer" autocomplete="off">
+				<input type="text" id="message" name="message" placeholder="Digite sua mensagem..." required />
+				<button type="submit">Enviar</button>
+			</form>
+		</div>
+
+		<script src="app.js"></script>
+	</body>
+</html>
