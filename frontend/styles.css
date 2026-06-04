@@ -9,6 +9,7 @@
 	--bubble-in: #1a2d33;
 	--bubble-out: #26383f;
 	--shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+	--danger: #e66f6f;
 }
 
 * {
@@ -62,13 +63,35 @@ header h1 {
 	align-items: center;
 }
 
-.status::before {
-	content: '';
+.status-dot {
 	width: 8px;
 	height: 8px;
 	background: var(--accent-2);
 	border-radius: 50%;
 	box-shadow: 0 0 12px rgba(107, 208, 195, 0.8);
+}
+
+.status-spinner {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	border: 2px solid rgba(107, 208, 195, 0.2);
+	border-top-color: var(--accent-2);
+	animation: spin 0.9s linear infinite;
+	display: none;
+}
+
+.status.is-connecting .status-dot {
+	display: none;
+}
+
+.status.is-connecting .status-spinner {
+	display: inline-block;
+}
+
+.status.is-offline .status-dot {
+	background: var(--danger);
+	box-shadow: 0 0 12px rgba(230, 111, 111, 0.6);
 }
 
 .chat {
@@ -149,6 +172,10 @@ form button {
 	color: #1b1a15;
 	font-weight: 600;
 	cursor: pointer;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	transition:
 		transform 0.2s ease,
 		box-shadow 0.2s ease;
@@ -158,6 +185,34 @@ form button {
 form button:hover {
 	transform: translateY(-1px);
 	box-shadow: 0 16px 36px rgba(227, 165, 75, 0.4);
+}
+
+form button:disabled {
+	opacity: 0.75;
+	cursor: not-allowed;
+}
+
+form.is-sending button {
+	cursor: progress;
+}
+
+.btn-spinner {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	border: 2px solid rgba(27, 26, 21, 0.35);
+	border-top-color: #1b1a15;
+	opacity: 0;
+	animation: spin 0.8s linear infinite;
+}
+
+form.is-sending .btn-text {
+	opacity: 0;
+}
+
+form.is-sending .btn-spinner {
+	opacity: 1;
 }
 
 @keyframes rise {
@@ -179,6 +234,15 @@ form button:hover {
 	to {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
 	}
 }
 

@@ -13,7 +13,11 @@
 		<div class="app">
 			<header>
 				<h1>Chat Simples</h1>
-				<span class="status">Online agora</span>
+				<span class="status is-connecting" id="status" role="status" aria-live="polite">
+					<span class="status-dot" aria-hidden="true"></span>
+					<span class="status-spinner" aria-hidden="true"></span>
+					<span class="status-text">Conectando...</span>
+				</span>
 			</header>
 			<main class="chat" id="chat">
 				<div class="msg in">
@@ -27,10 +31,13 @@
 			</main>
 			<form id="composer" autocomplete="off">
 				<input type="text" id="message" name="message" placeholder="Digite sua mensagem..." required />
-				<button type="submit">Enviar</button>
+				<button type="submit">
+					<span class="btn-text">Enviar</span>
+					<span class="btn-spinner" aria-hidden="true"></span>
+				</button>
 			</form>
 		</div>
 
-		<script src="app.js"></script>
+		<script type="module" src="main.ts"></script>
 	</body>
 </html>
