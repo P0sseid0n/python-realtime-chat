@@ -1,7 +1,7 @@
 import asyncio
 import websockets
 from pydantic import TypeAdapter, ValidationError
-from app.schemas import IncomingMessage, ServerError, ServerAck, ServerBroadcastText, ServerBroadcastTyping
+from app.schemas import ClientMessage, ServerError, ServerAck, ServerBroadcastText, ServerBroadcastTyping
 
 PORT = 3000
 
@@ -18,7 +18,7 @@ async def handler(websocket: websockets.ServerConnection):
         async for message in websocket:
             print(f"Mensagem recebida do cliente ({client_address}): {message}")
             try:
-                adapter = TypeAdapter[IncomingMessage](IncomingMessage)
+                adapter = TypeAdapter[ClientMessage](ClientMessage)
                 validated_message = adapter.validate_json(message)
 
                 if validated_message.event == 'SET_USERNAME':

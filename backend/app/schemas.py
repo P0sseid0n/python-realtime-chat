@@ -15,7 +15,7 @@ class ClientSendText(BaseCommand):
 class ClientTyping(BaseModel):
     event: Literal['TYPING'] = 'TYPING'
 
-type IncomingMessage = Annotated[ClientSetUsername | ClientSendText | ClientTyping, Field(discriminator='event')]
+type ClientMessage = Annotated[ClientSetUsername | ClientSendText | ClientTyping, Field(discriminator='event')]
 
 class ServerAck(BaseModel):
     event: Literal['ACK'] = 'ACK'
@@ -28,12 +28,12 @@ class ServerError(BaseModel):
     detail: str | None = None
 
 class ServerBroadcastText(BaseModel):
-    event: Literal['NEW_MESSAGE'] = 'NEW_MESSAGE'
+    event: Literal['BROADCAST_TEXT'] = 'BROADCAST_TEXT'
     author: str
     text: str
 
 class ServerBroadcastTyping(BaseModel):
-    event: Literal['USER_TYPING'] = 'USER_TYPING'
+    event: Literal['BROADCAST_TYPING'] = 'BROADCAST_TYPING'
     username: str
 
-type OutgoingMessage = Annotated[ServerAck | ServerError | ServerBroadcastText, Field(discriminator='event')]
+type ServerMessage = Annotated[ServerAck | ServerError | ServerBroadcastText, Field(discriminator='event')]
