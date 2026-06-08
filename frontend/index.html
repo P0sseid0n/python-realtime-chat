@@ -21,12 +21,18 @@
 			</header>
 			<main class="chat" id="chat">
 				<div class="msg in">
-					Oi! Me manda uma mensagem.
-					<span class="meta">Agora</span>
+					<p class="author">Alice</p>
+					<div class="balloon">
+						<p class="content">Oi! Me manda uma mensagem.</p>
+						<span class="meta">Agora</span>
+					</div>
 				</div>
 				<div class="msg out">
-					Perfeito, vou testar o input!
-					<span class="meta">Agora</span>
+					<p class="author">Você</p>
+					<div class="balloon">
+						<p class="content">Perfeito, vou testar o input!</p>
+						<span class="meta">Agora</span>
+					</div>
 				</div>
 			</main>
 			<form id="composer" autocomplete="off">
@@ -38,6 +44,6 @@
 			</form>
 		</div>
 
-		<script type="module" src="main.ts"></script>
+		<script type="module" src="src/main.ts"></script>
 	</body>
 </html>
