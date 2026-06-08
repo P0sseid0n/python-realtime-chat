@@ -1,3 +1,5 @@
+import { createJSONClientMessage, generateRandomUsername, getParsedServerMessage, createMessageElement } from './utils'
+
 const chat = document.getElementById('chat')!
 const form = document.querySelector('form')!
 const input = document.getElementById('message') as HTMLInputElement
@@ -5,41 +7,21 @@ const statusContainer = document.getElementById('status')!
 const statusText = statusContainer.querySelector('.status-text')!
 const sendButton = form.querySelector('button') as HTMLButtonElement
 
-function generateRandomUsername() {
-	return 'user_' + Math.random().toString(36).substr(2, 9)
-}
-
 const statusLabels = {
 	connecting: 'Conectando...',
 	online: 'Online agora',
 	offline: 'Conexao perdida',
-}
+} as const
 
 let isConnected = false
 let isSending = false
 
-const userName = generateRandomUsername()
+const username = generateRandomUsername()
 
-function getDateTimeFormatted() {
-	const now = new Date()
+function addMessage(author: string, text: string, variant: 'in' | 'out') {
+	const messageElement = createMessageElement(author, text, variant)
 
-	const hours = now.getHours().toString().padStart(2, '0')
-	const minutes = now.getMinutes().toString().padStart(2, '0')
-
-	return `${hours}:${minutes}`
-}
-
-function addMessage(text: string, variant: 'in' | 'out') {
-	const bubble = document.createElement('div')
-	bubble.className = `msg ${variant}`
-	bubble.textContent = text
-
-	const meta = document.createElement('span')
-	meta.className = 'meta'
-	meta.textContent = getDateTimeFormatted()
-	bubble.appendChild(meta)
-
-	chat.appendChild(bubble)
+	chat.appendChild(messageElement)
 	chat.scrollTop = chat.scrollHeight
 }
 
@@ -61,24 +43,6 @@ function setSending(next: boolean) {
 	updateFormState()
 }
 
-// function waitForBufferDrain(socket, timeoutMs = 1500) {
-// 	return new Promise(resolve => {
-// 		if (socket.bufferedAmount === 0) {
-// 			resolve()
-// 			return
-// 		}
-
-// 		const startedAt = Date.now()
-// 		const timer = setInterval(() => {
-// 			const timedOut = Date.now() - startedAt >= timeoutMs
-// 			if (socket.readyState !== WebSocket.OPEN || socket.bufferedAmount === 0 || timedOut) {
-// 				clearInterval(timer)
-// 				resolve()
-// 			}
-// 		}, 50)
-// 	})
-// }
-
 form.addEventListener('submit', async event => {
 	event.preventDefault()
 
@@ -92,10 +56,8 @@ form.addEventListener('submit', async event => {
 
 	setSending(true)
 	try {
-		socket.send(value)
-		addMessage(value, 'out')
-		// const minDelay = new Promise(resolve => setTimeout(resolve, 300))
-		// await Promise.all([waitForBufferDrain(socket), minDelay])
+		socket.send(createJSONClientMessage('SEND_TEXT', { text: value }))
+		addMessage(username, value, 'out')
 	} finally {
 		setSending(false)
 		input.value = ''
@@ -104,17 +66,29 @@ form.addEventListener('submit', async event => {
 
 setConnectionState('connecting')
 
-const socket = new WebSocket('ws://localhost:3000')
+const socket = new WebSocket('ws://192.168.100.226:3000')
+// http://192.168.100.226:5173/
 
 socket.onopen = () => {
 	console.log('Conectado ao servidor WebSocket')
 	setConnectionState('online')
+
+	socket.send(createJSONClientMessage('SET_USERNAME', { username }))
 }
 
 socket.onmessage = event => {
-	const message = event.data
+	console.log('Mensagem bruta recebida do servidor:', event.data)
+	const message = getParsedServerMessage(event.data)
 	console.log('Mensagem recebida do servidor:', message)
-	addMessage(message, 'in')
+
+	if (!message) {
+		console.warn('Mensagem do servidor ignorada por formato inválido')
+		return
+	}
+
+	if (message.event === 'BROADCAST_TEXT') {
+		addMessage(message.author, message.text, 'in')
+	}
 }
 
 socket.onclose = () => {
