@@ -1,0 +1,55 @@
+# ==============================
+# Sistema e Editor
+# ==============================
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ==============================
+# Backend (Python)
+# ==============================
+# Ambientes Virtuais
+.venv/
+venv/
+env/
+ENV/
+
+# Cache e Binários
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Variáveis de Ambiente
+.env
+.env.*
+!.env.example
+
+# ==============================
+# Frontend (Bun / TypeScript / Vue)
+# ==============================
+# Dependências
+node_modules/
+/frontend/node_modules/
+
+# Build
+dist/
+dist-ssr/
+build/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Bun
+.bun/
