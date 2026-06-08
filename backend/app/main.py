@@ -1,7 +1,7 @@
 import asyncio
 import websockets
 from pydantic import TypeAdapter, ValidationError
-from schemas import IncomingMessage, ServerError, ServerAck, ServerBroadcastText, ServerBroadcastTyping
+from app.schemas import IncomingMessage, ServerError, ServerAck, ServerBroadcastText, ServerBroadcastTyping
 
 PORT = 3000
 
