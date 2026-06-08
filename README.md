@@ -35,3 +35,30 @@ uv sync
 # Inicie o servidor WebSocket
 uv run main.py
 ```
+
+_O servidor estará escutando na porta configurada (ex: `ws://localhost:3000` ou `ws://0.0.0.0:3000`)._
+
+### 2. Rodando o Frontend (Bun)
+
+Abra o segundo terminal, navegue até a pasta do frontend e inicie a aplicação:
+
+```bash
+# Entre na pasta do frontend
+cd frontend
+
+# Instale as dependências usando Bun
+bun install
+
+# Inicie o servidor de desenvolvimento
+bun run dev
+
+```
+
+_O servidor de desenvolvimento do frontend estará disponível no seu navegador local._
+
+---
+
+## 📁 Estrutura do Projeto
+
+- `/backend`: Contém a lógica do servidor, definição de schemas (Pydantic), gerenciamento de estado das conexões e rotas do WebSocket.
+- `/frontend`: Contém a interface do usuário, tipagens do TypeScript e comunicação via cliente WebSocket.
