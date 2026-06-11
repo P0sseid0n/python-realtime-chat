@@ -1,6 +1,18 @@
 import { generateRandomMessageId } from '.'
 import type { ClientEventMap, ClientMessage, ServerEventMap, ServerMessage } from '../types'
 
+export function createClientMessage<T extends keyof ClientEventMap>(
+	payload: Omit<ClientEventMap[T], 'id' | 'event'>,
+): ClientEventMap[T] {
+	const message = {
+		...(payload as ClientEventMap[T]),
+	}
+
+	if (message.event !== 'TYPING') message.id = crypto.randomUUID()
+
+	return message
+}
+
 export function createJSONClientMessage<T extends ClientMessage['event'], K extends ClientEventMap[T]>(
 	event: T,
 	data: Omit<K, 'event' | 'id'>,

@@ -12,15 +12,17 @@ export interface ClientSendText extends BaseCommand {
 	text: string
 }
 
-export interface ClientTyping extends BaseCommand {
+export interface ClientTyping {
 	event: 'TYPING'
 }
 
-export type ClientMessage = ClientSetUsername | ClientSendText | ClientTyping
-
 export type ClientEventMap = {
-	[K in ClientMessage['event']]: Extract<ClientMessage, { event: K }>
+	SET_USERNAME: ClientSetUsername
+	SEND_TEXT: ClientSendText
+	TYPING: ClientTyping
 }
+
+export type ClientMessage = ClientEventMap[keyof ClientEventMap]
 
 export interface ServerAck {
 	event: 'ACK'

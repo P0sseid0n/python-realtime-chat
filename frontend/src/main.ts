@@ -1,4 +1,11 @@
-import { createJSONClientMessage, generateRandomUsername, getParsedServerMessage, createMessageElement } from './utils'
+import { StatusLabels } from './constants'
+import {
+	createJSONClientMessage,
+	generateRandomUsername,
+	getParsedServerMessage,
+	createMessageElement,
+	createClientMessage,
+} from './utils'
 
 const chat = document.getElementById('chat')!
 const form = document.querySelector('form')!
@@ -7,18 +14,16 @@ const statusContainer = document.getElementById('status')!
 const statusText = statusContainer.querySelector('.status-text')!
 const sendButton = form.querySelector('button') as HTMLButtonElement
 
-const statusLabels = {
-	connecting: 'Conectando...',
-	online: 'Online agora',
-	offline: 'Conexao perdida',
-} as const
-
-let isConnected = false
-let isSending = false
+const state = {
+	username: generateRandomUsername(),
+	isConnected: false,
+	isSending: false,
+}
+const pendingMessages: { [key: string]: Function } = {}
 
 const username = generateRandomUsername()
 
-function addMessage(author: string, text: string, variant: 'in' | 'out') {
+function addMessageOnChat(author: string, text: string, variant: 'in' | 'out') {
 	const messageElement = createMessageElement(author, text, variant)
 
 	chat.appendChild(messageElement)
@@ -26,20 +31,22 @@ function addMessage(author: string, text: string, variant: 'in' | 'out') {
 }
 
 function updateFormState() {
-	form.classList.toggle('is-sending', isSending)
-	sendButton.disabled = !isConnected || isSending
+	form.classList.toggle('is-sending', state.isSending)
+	sendButton.disabled = !state.isConnected || state.isSending
 }
 
-function setConnectionState(state: keyof typeof statusLabels) {
+function setConnectionState(newValue: keyof typeof StatusLabels) {
 	statusContainer.classList.remove('is-online', 'is-offline', 'is-connecting')
-	statusContainer.classList.add(`is-${state}`)
-	statusText.textContent = statusLabels[state] || statusLabels.connecting
-	isConnected = state === 'online'
+	statusContainer.classList.add(`is-${newValue}`)
+
+	statusText.textContent = StatusLabels[newValue] || StatusLabels.connecting
+	state.isConnected = newValue === 'online'
+
 	updateFormState()
 }
 
-function setSending(next: boolean) {
-	isSending = next
+function setSending(newValue: boolean) {
+	state.isSending = newValue
 	updateFormState()
 }
 
@@ -56,8 +63,12 @@ form.addEventListener('submit', async event => {
 
 	setSending(true)
 	try {
-		socket.send(createJSONClientMessage('SEND_TEXT', { text: value }))
-		addMessage(username, value, 'out')
+		const clientMessage = createClientMessage<'SEND_TEXT'>({ text: value })
+		pendingMessages[clientMessage.id] = () => {
+			addMessageOnChat(username, value, 'out')
+		}
+
+		socket.send(JSON.stringify(clientMessage))
 	} finally {
 		setSending(false)
 		input.value = ''
@@ -87,7 +98,13 @@ socket.onmessage = event => {
 	}
 
 	if (message.event === 'BROADCAST_TEXT') {
-		addMessage(message.author, message.text, 'in')
+		addMessageOnChat(message.author, message.text, 'in')
+	} else if (message.event === 'ACK') {
+		const resolve = pendingMessages[message.message_id]
+		if (resolve) {
+			resolve()
+			delete pendingMessages[message.message_id]
+		}
 	}
 }
 
