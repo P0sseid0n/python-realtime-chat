@@ -2,11 +2,13 @@ import { generateRandomMessageId } from '.'
 import type { ClientEventMap, ClientMessage, ServerEventMap, ServerMessage } from '../types'
 
 export function createClientMessage<T extends keyof ClientEventMap>(
+	event: T,
 	payload: Omit<ClientEventMap[T], 'id' | 'event'>,
 ): ClientEventMap[T] {
 	const message = {
-		...(payload as ClientEventMap[T]),
-	}
+		...payload,
+		event,
+	} as ClientEventMap[T]
 
 	if (message.event !== 'TYPING') message.id = crypto.randomUUID()
 
