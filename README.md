@@ -21,6 +21,20 @@ Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
 
 O projeto é dividido em duas pastas distintas. Você precisará de dois terminais abertos para rodar o backend e o frontend simultaneamente.
 
+### Usando o workspace do VS Code (recomendado)
+
+O arquivo `chat.code-workspace` abre o `frontend` e o `backend` como pastas separadas no mesmo VS Code (multi-root workspace), cada uma com suas próprias configurações e ambiente.
+
+1. Abra o workspace: **File > Open Workspace from File...** e selecione `chat.code-workspace`, ou pelo terminal:
+
+   ```bash
+   code chat.code-workspace
+   ```
+
+2. Abra um terminal para cada projeto: em **Terminal > New Terminal** (`` Ctrl+Shift+` ``), o VS Code pergunta em qual pasta abrir. Escolha `backend` para o primeiro terminal e repita escolhendo `frontend` para o segundo.
+
+Cada terminal já abre dentro da pasta do projeto, então o `cd` dos passos abaixo não é necessário. Para ver os dois lado a lado, use **Split Terminal** (`Ctrl+Shift+5`).
+
 ### 1. Rodando o Backend (Python)
 
 Abra o primeiro terminal, navegue até a pasta do backend e inicie o servidor:
