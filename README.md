@@ -2,15 +2,18 @@
 
 Aplicação de chat em tempo real separada em dois serviços: um backend em Python gerenciado com `uv` e um frontend utilizando TypeScript e Bun.
 
-![Tela do chat com mensagens trocadas entre três usuários e avisos de entrada e saída](docs/screenshot.png)
+![Tela do chat com mensagens, avisos de entrada e saída, lista de usuários online e indicador de digitação](docs/screenshot.png)
 
 ## ✨ Funcionalidades
 
 - **Mensagens em tempo real** entre todos os usuários conectados.
 - **Escolha de nome** ao entrar, com o último nome usado salvo no navegador. O nome pode ser trocado depois pelo botão **Trocar** no cabeçalho.
 - **Nomes únicos**: o servidor recusa um nome que já está em uso.
-- **Envio otimista**: a mensagem aparece na hora como "Enviando..." e é confirmada (ou marcada como "Falha ao enviar") quando o servidor responde.
+- **Envio otimista**: a mensagem aparece na hora como "Enviando..." e é confirmada (ou marcada como "Falha ao enviar") quando o servidor responde. Mensagens com falha têm um botão **Tentar de novo**.
+- **Lista de usuários online** na lateral, com destaque para quem está digitando. Em telas pequenas vira um contador no cabeçalho.
+- **"Fulano está digitando..."** acima do campo de mensagem.
 - **Avisos no chat** quando alguém entra, sai ou troca de nome.
+- **Reconexão automática**: se a conexão cair, o chat tenta voltar sozinho (1s, 2s, 4s... até 30s) e entra de novo com o mesmo nome.
 - **Status da conexão** no cabeçalho (Conectando, Online, Conexão perdida).
 
 ## 🛠️ Tecnologias Utilizadas
@@ -110,7 +113,7 @@ Toda mensagem é um JSON com o campo `event`. Comandos do cliente que esperam co
 | -------------- | ---------------- | ----------------------------------------------------------- |
 | `SET_USERNAME` | `id`, `username` | Define ou troca o nome (1 a 32 caracteres, único).          |
 | `SEND_TEXT`    | `id`, `text`     | Envia uma mensagem (1 a 2000 caracteres). Exige nome.       |
-| `TYPING`       | —                | Indica que o usuário está digitando. Exige nome.            |
+| `TYPING`       | —                | Indica que o usuário está digitando (enviado no máximo a cada 2s). Exige nome. |
 
 **Servidor → Cliente**
 
@@ -123,6 +126,7 @@ Toda mensagem é um JSON com o campo `event`. Comandos do cliente que esperam co
 | `BROADCAST_USER_JOINED`     | `username`                     | Um usuário entrou no chat.                                |
 | `BROADCAST_USER_LEFT`       | `username`                     | Um usuário saiu do chat.                                  |
 | `BROADCAST_USERNAME_CHANGE` | `old_username`, `new_username` | Um usuário trocou de nome.                                |
+| `USER_LIST`                 | `usernames`                    | Enviado só para quem acabou de entrar: todos os nomes online, incluindo o próprio. |
 
 Os broadcasts são enviados apenas para quem já entrou no chat com um nome, e nunca para o próprio autor.
 
@@ -140,13 +144,15 @@ frontend/
   styles.css
   src/
     main.ts        # Inicializa a interface e conecta ao servidor
-    socket.ts      # Conexão WebSocket, ACKs e eventos para a interface
+    socket.ts      # Conexão WebSocket, reconexão, ACKs e eventos para a interface
     types/         # Tipos das mensagens do protocolo
     ui/
-      messages.ts  # Lista de mensagens e avisos
+      messages.ts  # Lista de mensagens, avisos e reenvio de mensagens com falha
       status.ts    # Indicador de conexão
-      form.ts      # Campo de mensagem e botão Enviar
+      form.ts      # Campo de mensagem, botão Enviar e aviso de "digitando"
       username.ts  # Diálogo de nome e exibição do usuário atual
+      online.ts    # Lista de usuários online
+      typing.ts    # Indicador "fulano está digitando..."
     utils/         # Criação de mensagens, elementos do DOM e formatação
 docs/
   screenshot.png
