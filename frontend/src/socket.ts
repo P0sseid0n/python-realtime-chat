@@ -44,7 +44,6 @@ function handleAck(ack: ServerAck) {
 		const { username } = pendingUsername
 		const previousUsername = currentUsername
 		pendingUsername = null
-	currentUsername = null
 
 		if (ack.status === 'success') currentUsername = username
 		emit('usernameStatus', { username, status: ack.status === 'success' ? 'accepted' : 'rejected', previousUsername })
@@ -62,6 +61,7 @@ function handleDisconnect() {
 	for (const id of pendingMessages) emit('messageStatus', { id, status: 'failed' })
 	pendingMessages.clear()
 	pendingUsername = null
+	currentUsername = null
 
 	emit('statusChange', 'offline')
 }
