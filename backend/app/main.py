@@ -1,5 +1,7 @@
 import asyncio
+import io
 import json
+import sys
 import websockets
 from pydantic import TypeAdapter, ValidationError
 from app.schemas import ClientMessage, ServerError, ServerAck, ServerBroadcastText, ServerBroadcastTyping
@@ -82,6 +84,10 @@ async def handler(websocket: websockets.ServerConnection):
         print(f"Encerrando conexão com cliente ({client_address})")
 
 async def main():
+    # No Windows a saída padrão pode não ser UTF-8 (ex.: redirecionada para arquivo),
+    # e um print com emoji derrubaria a conexão do cliente
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
 
     async with websockets.serve(handler, "0.0.0.0", PORT) as server:
         print(f"Servidor WebSocket rodando em ws://{server.sockets[0].getsockname()[0]}:{PORT}")
