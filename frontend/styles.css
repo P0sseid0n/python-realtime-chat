@@ -156,6 +156,26 @@ header h1 {
 	color: var(--muted);
 }
 
+.msg.is-pending .balloon {
+	opacity: 0.6;
+}
+
+.msg.is-pending .meta::after {
+	content: ' · Enviando...';
+}
+
+.msg.is-failed .balloon {
+	border-color: rgba(230, 111, 111, 0.6);
+}
+
+.msg.is-failed .meta {
+	color: var(--danger);
+}
+
+.msg.is-failed .meta::after {
+	content: ' · Falha ao enviar';
+}
+
 form {
 	padding: 16px 24px 20px;
 	border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -211,29 +231,6 @@ form button:hover {
 form button:disabled {
 	opacity: 0.75;
 	cursor: not-allowed;
-}
-
-form.is-sending button {
-	cursor: progress;
-}
-
-.btn-spinner {
-	position: absolute;
-	width: 16px;
-	height: 16px;
-	border-radius: 50%;
-	border: 2px solid rgba(27, 26, 21, 0.35);
-	border-top-color: #1b1a15;
-	opacity: 0;
-	animation: spin 0.8s linear infinite;
-}
-
-form.is-sending .btn-text {
-	opacity: 0;
-}
-
-form.is-sending .btn-spinner {
-	opacity: 1;
 }
 
 @keyframes rise {
