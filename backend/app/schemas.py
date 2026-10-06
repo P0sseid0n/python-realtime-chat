@@ -1,16 +1,19 @@
 from typing import Annotated, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
+
+Username = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=32)]
+MessageText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)]
 
 class BaseCommand(BaseModel):
     id: str
 
 class ClientSetUsername(BaseCommand):
     event: Literal['SET_USERNAME'] = 'SET_USERNAME'
-    username: str
+    username: Username
 
 class ClientSendText(BaseCommand):
     event: Literal['SEND_TEXT'] = 'SEND_TEXT'
-    text: str 
+    text: MessageText
 
 class ClientTyping(BaseModel):
     event: Literal['TYPING'] = 'TYPING'
@@ -36,4 +39,4 @@ class ServerBroadcastTyping(BaseModel):
     event: Literal['BROADCAST_TYPING'] = 'BROADCAST_TYPING'
     username: str
 
-type ServerMessage = Annotated[ServerAck | ServerError | ServerBroadcastText, Field(discriminator='event')]
+type ServerMessage = Annotated[ServerAck | ServerError | ServerBroadcastText | ServerBroadcastTyping, Field(discriminator='event')]

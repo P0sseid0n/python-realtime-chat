@@ -11,7 +11,7 @@ Aplicação de chat em tempo real separada em dois serviços: um backend em Pyth
 
 Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
 
-- [Python 3.12+](https://www.python.org/downloads/)
+- [Python 3.14+](https://www.python.org/downloads/)
 - [uv](https://github.com/astral-sh/uv) (Gerenciador de pacotes e ambientes Python)
 - [Bun](https://bun.sh/) (Runtime e gerenciador de pacotes para o Frontend)
 
@@ -33,7 +33,7 @@ cd backend
 uv sync
 
 # Inicie o servidor WebSocket
-uv run main.py
+uv run python -m app.main
 ```
 
 _O servidor estará escutando na porta configurada (ex: `ws://localhost:3000` ou `ws://0.0.0.0:3000`)._
