@@ -63,6 +63,11 @@ export interface ServerBroadcastUserLeft {
 	username: string
 }
 
+export interface ServerUserList {
+	event: 'USER_LIST'
+	usernames: string[]
+}
+
 export type ServerMessage =
 	| ServerAck
 	| ServerError
@@ -71,6 +76,7 @@ export type ServerMessage =
 	| ServerBroadcastUsernameChange
 	| ServerBroadcastUserJoined
 	| ServerBroadcastUserLeft
+	| ServerUserList
 
 export type ServerEventMap = {
 	[K in ServerMessage['event']]: Extract<ServerMessage, { event: K }>

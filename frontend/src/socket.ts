@@ -16,6 +16,8 @@ type SocketEventMap = {
 	usernameChanged: { oldUsername: string; newUsername: string }
 	userJoined: { username: string }
 	userLeft: { username: string }
+	userList: { usernames: string[] }
+	userTyping: { username: string }
 }
 
 const socketEvents = new EventTarget()
@@ -37,6 +39,10 @@ function emit<K extends keyof SocketEventMap>(type: K, detail: SocketEventMap[K]
 
 export function onSocketEvent<K extends keyof SocketEventMap>(type: K, listener: (detail: SocketEventMap[K]) => void) {
 	socketEvents.addEventListener(type, event => listener((event as CustomEvent<SocketEventMap[K]>).detail))
+}
+
+function isOpen(ws: WebSocket | null): ws is WebSocket {
+	return ws !== null && ws.readyState === WebSocket.OPEN
 }
 
 function handleAck(ack: ServerAck) {
@@ -68,14 +74,15 @@ function handleDisconnect() {
 
 export function connect(url: string) {
 	emit('statusChange', 'connecting')
-	socket = new WebSocket(url)
+	const ws = new WebSocket(url)
+	socket = ws
 
-	socket.onopen = () => {
+	ws.onopen = () => {
 		console.log('Conectado ao servidor WebSocket')
 		emit('statusChange', 'online')
 	}
 
-	socket.onmessage = event => {
+	ws.onmessage = event => {
 		console.log('Mensagem bruta recebida do servidor:', event.data)
 		const message = getParsedServerMessage(event.data)
 		console.log('Mensagem recebida do servidor:', message)
@@ -85,28 +92,44 @@ export function connect(url: string) {
 			return
 		}
 
-		if (message.event === 'BROADCAST_TEXT') {
-			emit('messageReceived', { author: message.author, text: message.text })
-		} else if (message.event === 'ACK') {
-			handleAck(message)
-		} else if (message.event === 'BROADCAST_USERNAME_CHANGE') {
-			emit('usernameChanged', { oldUsername: message.old_username, newUsername: message.new_username })
-		} else if (message.event === 'BROADCAST_USER_JOINED') {
-			emit('userJoined', { username: message.username })
-		} else if (message.event === 'BROADCAST_USER_LEFT') {
-			emit('userLeft', { username: message.username })
-		} else if (message.event === 'ERROR') {
-			console.warn('Erro do servidor:', message.message, message.detail ?? '')
+		switch (message.event) {
+			case 'ACK':
+				handleAck(message)
+				break
+			case 'BROADCAST_TEXT':
+				emit('messageReceived', { author: message.author, text: message.text })
+				break
+			case 'BROADCAST_TYPING':
+				emit('userTyping', { username: message.username })
+				break
+			case 'BROADCAST_USERNAME_CHANGE':
+				emit('usernameChanged', { oldUsername: message.old_username, newUsername: message.new_username })
+				break
+			case 'BROADCAST_USER_JOINED':
+				emit('userJoined', { username: message.username })
+				break
+			case 'BROADCAST_USER_LEFT':
+				emit('userLeft', { username: message.username })
+				break
+			case 'USER_LIST':
+				emit('userList', { usernames: message.usernames })
+				break
+			case 'ERROR':
+				console.warn('Erro do servidor:', message.message, message.detail ?? '')
+				break
 		}
 	}
 
-	socket.onclose = handleDisconnect
-	socket.onerror = handleDisconnect
+	// `error` sempre vem seguido de `close`, então a queda é tratada só no `close`
+	ws.onerror = () => console.warn('Erro na conexão WebSocket')
+	ws.onclose = () => {
+		if (socket === ws) handleDisconnect()
+	}
 }
 
 /** Retorna true se a mensagem foi enviada ao servidor. */
 export function sendChatMessage(text: string): boolean {
-	if (!socket || socket.readyState !== WebSocket.OPEN) return false
+	if (!isOpen(socket)) return false
 
 	const clientMessage = createClientMessage('SEND_TEXT', { text })
 	pendingMessages.add(clientMessage.id)
@@ -116,9 +139,16 @@ export function sendChatMessage(text: string): boolean {
 	return true
 }
 
+/** Avisa os outros usuários que você está digitando. */
+export function sendTyping() {
+	if (!isOpen(socket) || currentUsername === null) return
+
+	socket.send(JSON.stringify(createClientMessage('TYPING', {})))
+}
+
 /** Pede ao servidor para usar esse nome. O resultado chega pelo evento `usernameStatus`. */
 export function setUsername(username: string): boolean {
-	if (!socket || socket.readyState !== WebSocket.OPEN) return false
+	if (!isOpen(socket)) return false
 
 	const clientMessage = createClientMessage('SET_USERNAME', { username })
 	pendingUsername = { id: clientMessage.id, username }

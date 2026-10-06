@@ -1,4 +1,7 @@
-import { onSocketEvent, sendChatMessage } from '../socket'
+import { onSocketEvent, sendChatMessage, sendTyping } from '../socket'
+
+// Intervalo mínimo entre dois avisos de "digitando"
+const TYPING_THROTTLE = 2000
 
 const form = document.querySelector<HTMLFormElement>('#composer')!
 const sendButton = form.querySelector('button')!
@@ -7,6 +10,7 @@ const input = form.querySelector<HTMLInputElement>('input#message')!
 const state = {
 	isOnline: false,
 	hasUsername: false,
+	lastTypingSentAt: 0,
 }
 
 function updateFormState() {
@@ -31,12 +35,26 @@ export function initForm() {
 		}
 	})
 
+	input.addEventListener('input', () => {
+		if (!input.value.trim()) return
+
+		const now = Date.now()
+		if (now - state.lastTypingSentAt < TYPING_THROTTLE) return
+
+		state.lastTypingSentAt = now
+		sendTyping()
+	})
+
 	form.addEventListener('submit', event => {
 		event.preventDefault()
 
 		const value = input.value.trim()
 		if (!value) return
 
-		if (sendChatMessage(value)) input.value = ''
+		if (sendChatMessage(value)) {
+			input.value = ''
+			// A próxima digitação já avisa de novo, sem esperar o intervalo
+			state.lastTypingSentAt = 0
+		}
 	})
 }

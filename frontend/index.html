@@ -14,6 +14,7 @@
 			<header>
 				<h1>Chat Simples</h1>
 				<div class="header-info">
+					<span class="online-summary" id="online-summary" hidden></span>
 					<div class="current-user" id="current-user" hidden>
 						<span class="current-user-label">Você é</span>
 						<strong class="current-user-name" id="current-user-name"></strong>
@@ -26,11 +27,20 @@
 					</span>
 				</div>
 			</header>
-			<main class="chat" id="chat"></main>
-			<form id="composer" autocomplete="off">
-				<input type="text" id="message" name="message" placeholder="Digite sua mensagem..." required />
-				<button type="submit">Enviar</button>
-			</form>
+			<div class="app-body">
+				<div class="chat-column">
+					<main class="chat" id="chat"></main>
+					<p class="typing-indicator" id="typing-indicator" aria-live="polite"></p>
+					<form id="composer" autocomplete="off">
+						<input type="text" id="message" name="message" placeholder="Digite sua mensagem..." required />
+						<button type="submit">Enviar</button>
+					</form>
+				</div>
+				<aside class="online-panel" aria-labelledby="online-title">
+					<h2 id="online-title">Online <span class="online-count" id="online-count">0</span></h2>
+					<ul class="online-list" id="online-list"></ul>
+				</aside>
+			</div>
 		</div>
 
 		<dialog class="username-dialog" id="username-dialog" aria-labelledby="username-title">

@@ -52,6 +52,10 @@ class ServerBroadcastUserLeft(BaseModel):
     event: Literal['BROADCAST_USER_LEFT'] = 'BROADCAST_USER_LEFT'
     username: str
 
+class ServerUserList(BaseModel):
+    event: Literal['USER_LIST'] = 'USER_LIST'
+    usernames: list[str]
+
 type ServerMessage = Annotated[
     ServerAck
     | ServerError
@@ -59,5 +63,6 @@ type ServerMessage = Annotated[
     | ServerBroadcastTyping
     | ServerBroadcastUsernameChange
     | ServerBroadcastUserJoined
-    | ServerBroadcastUserLeft,
+    | ServerBroadcastUserLeft
+    | ServerUserList,
     Field(discriminator='event')]

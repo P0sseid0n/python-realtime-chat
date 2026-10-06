@@ -13,6 +13,7 @@ from app.schemas import (
     ServerBroadcastUsernameChange,
     ServerBroadcastUserJoined,
     ServerBroadcastUserLeft,
+    ServerUserList,
 )
 
 PORT = 3000
@@ -73,6 +74,9 @@ async def handler(websocket: websockets.ServerConnection):
                 await websocket.send(ServerAck(status='success', message_id=validated_message.id).model_dump_json())
 
                 if old_username is None:
+                    # Quem acabou de entrar recebe a lista de quem já está online (incluindo ele mesmo)
+                    await websocket.send(ServerUserList(usernames=list(CLIENTS_USERNAMES.values())).model_dump_json())
+
                     user_joined = ServerBroadcastUserJoined(username=validated_message.username).model_dump_json()
                     websockets.broadcast(other_clients(websocket), user_joined)
                 elif old_username != validated_message.username:
