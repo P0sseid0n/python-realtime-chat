@@ -90,6 +90,8 @@ export function initUsername() {
 			saveUsername(username)
 			dialog.close()
 		} else {
+			// Pode acontecer fora do diálogo: ao reconectar, o nome pode ter sido pego por outra pessoa
+			if (!dialog.open) openDialog()
 			errorText.textContent = `O nome "${username}" não está disponível.`
 			input.focus()
 			input.select()

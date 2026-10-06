@@ -20,9 +20,16 @@ type SocketEventMap = {
 	userTyping: { username: string }
 }
 
+// Espera antes de cada tentativa de reconexão: 1s, 2s, 4s... até 30s
+const RECONNECT_BASE_DELAY = 1000
+const RECONNECT_MAX_DELAY = 30_000
+
 const socketEvents = new EventTarget()
 
 let socket: WebSocket | null = null
+let serverUrl: string | null = null
+let reconnectAttempts = 0
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 
 // IDs das mensagens enviadas aguardando ACK do servidor
 const pendingMessages = new Set<string>()
@@ -32,6 +39,9 @@ let pendingUsername: { id: string; username: string } | null = null
 
 // Nome aceito pelo servidor na conexão atual
 let currentUsername: string | null = null
+
+// Último nome aceito, usado para entrar de novo automaticamente após uma reconexão
+let lastAcceptedUsername: string | null = null
 
 function emit<K extends keyof SocketEventMap>(type: K, detail: SocketEventMap[K]) {
 	socketEvents.dispatchEvent(new CustomEvent(type, { detail }))
@@ -51,7 +61,10 @@ function handleAck(ack: ServerAck) {
 		const previousUsername = currentUsername
 		pendingUsername = null
 
-		if (ack.status === 'success') currentUsername = username
+		if (ack.status === 'success') {
+			currentUsername = username
+			lastAcceptedUsername = username
+		}
 		emit('usernameStatus', { username, status: ack.status === 'success' ? 'accepted' : 'rejected', previousUsername })
 		return
 	}
@@ -63,6 +76,8 @@ function handleAck(ack: ServerAck) {
 }
 
 function handleDisconnect() {
+	socket = null
+
 	// Sem conexão, nenhum ACK pendente vai chegar
 	for (const id of pendingMessages) emit('messageStatus', { id, status: 'failed' })
 	pendingMessages.clear()
@@ -70,16 +85,36 @@ function handleDisconnect() {
 	currentUsername = null
 
 	emit('statusChange', 'offline')
+	scheduleReconnect()
 }
 
-export function connect(url: string) {
+function scheduleReconnect() {
+	if (reconnectTimer !== null) return
+
+	const delay = Math.min(RECONNECT_BASE_DELAY * 2 ** reconnectAttempts, RECONNECT_MAX_DELAY)
+	reconnectAttempts++
+	console.log(`Tentando reconectar em ${delay / 1000}s`)
+
+	reconnectTimer = setTimeout(() => {
+		reconnectTimer = null
+		openSocket()
+	}, delay)
+}
+
+function openSocket() {
+	if (serverUrl === null) return
+
 	emit('statusChange', 'connecting')
-	const ws = new WebSocket(url)
+	const ws = new WebSocket(serverUrl)
 	socket = ws
 
 	ws.onopen = () => {
 		console.log('Conectado ao servidor WebSocket')
+		reconnectAttempts = 0
 		emit('statusChange', 'online')
+
+		// Depois de uma queda, volta com o mesmo nome sem perguntar de novo
+		if (lastAcceptedUsername !== null) setUsername(lastAcceptedUsername)
 	}
 
 	ws.onmessage = event => {
@@ -125,6 +160,11 @@ export function connect(url: string) {
 	ws.onclose = () => {
 		if (socket === ws) handleDisconnect()
 	}
+}
+
+export function connect(url: string) {
+	serverUrl = url
+	openSocket()
 }
 
 /** Retorna true se a mensagem foi enviada ao servidor. */

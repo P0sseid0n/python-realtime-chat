@@ -507,3 +507,21 @@ form button:disabled {
 	font-size: 13px;
 	color: var(--accent-2);
 }
+
+.retry-button {
+	display: block;
+	margin: 4px 0 0 auto;
+	padding: 2px 4px;
+	border: none;
+	background: none;
+	color: var(--danger);
+	font: inherit;
+	font-size: 12px;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	cursor: pointer;
+}
+
+.retry-button:hover {
+	color: var(--text);
+}
