@@ -39,4 +39,25 @@ class ServerBroadcastTyping(BaseModel):
     event: Literal['BROADCAST_TYPING'] = 'BROADCAST_TYPING'
     username: str
 
-type ServerMessage = Annotated[ServerAck | ServerError | ServerBroadcastText | ServerBroadcastTyping, Field(discriminator='event')]
+class ServerBroadcastUsernameChange(BaseModel):
+    event: Literal['BROADCAST_USERNAME_CHANGE'] = 'BROADCAST_USERNAME_CHANGE'
+    old_username: str
+    new_username: str
+
+class ServerBroadcastUserJoined(BaseModel):
+    event: Literal['BROADCAST_USER_JOINED'] = 'BROADCAST_USER_JOINED'
+    username: str
+
+class ServerBroadcastUserLeft(BaseModel):
+    event: Literal['BROADCAST_USER_LEFT'] = 'BROADCAST_USER_LEFT'
+    username: str
+
+type ServerMessage = Annotated[
+    ServerAck
+    | ServerError
+    | ServerBroadcastText
+    | ServerBroadcastTyping
+    | ServerBroadcastUsernameChange
+    | ServerBroadcastUserJoined
+    | ServerBroadcastUserLeft,
+    Field(discriminator='event')]

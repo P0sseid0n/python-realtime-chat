@@ -4,7 +4,16 @@ import json
 import sys
 import websockets
 from pydantic import TypeAdapter, ValidationError
-from app.schemas import ClientMessage, ServerError, ServerAck, ServerBroadcastText, ServerBroadcastTyping
+from app.schemas import (
+    ClientMessage,
+    ServerError,
+    ServerAck,
+    ServerBroadcastText,
+    ServerBroadcastTyping,
+    ServerBroadcastUsernameChange,
+    ServerBroadcastUserJoined,
+    ServerBroadcastUserLeft,
+)
 
 PORT = 3000
 
@@ -14,7 +23,8 @@ CLIENTS_USERNAMES: dict[websockets.ServerConnection, str] = {}
 CLIENT_MESSAGE_ADAPTER = TypeAdapter[ClientMessage](ClientMessage)
 
 def other_clients(websocket: websockets.ServerConnection) -> set[websockets.ServerConnection]:
-    return CLIENTS - {websocket}
+    """Clientes que já entraram no chat com um nome, exceto o próprio."""
+    return {ws for ws in CLIENTS_USERNAMES if ws is not websocket}
 
 def extract_message_id(raw_message: str | bytes) -> str | None:
     """Tenta obter o id de uma mensagem que falhou na validação, para responder com ACK de erro."""
@@ -58,8 +68,16 @@ async def handler(websocket: websockets.ServerConnection):
                     await send_error(websocket, 'Nome de usuário já está em uso', validated_message.id)
                     continue
 
+                old_username = CLIENTS_USERNAMES.get(websocket)
                 CLIENTS_USERNAMES[websocket] = validated_message.username
                 await websocket.send(ServerAck(status='success', message_id=validated_message.id).model_dump_json())
+
+                if old_username is None:
+                    user_joined = ServerBroadcastUserJoined(username=validated_message.username).model_dump_json()
+                    websockets.broadcast(other_clients(websocket), user_joined)
+                elif old_username != validated_message.username:
+                    username_change = ServerBroadcastUsernameChange(old_username=old_username, new_username=validated_message.username).model_dump_json()
+                    websockets.broadcast(other_clients(websocket), username_change)
                 continue
 
             username = CLIENTS_USERNAMES.get(websocket)
@@ -80,7 +98,11 @@ async def handler(websocket: websockets.ServerConnection):
         print(f"Cliente ({client_address}) desconectado: {e}")
     finally:
         CLIENTS.discard(websocket)
-        CLIENTS_USERNAMES.pop(websocket, None)
+        username = CLIENTS_USERNAMES.pop(websocket, None)
+
+        # Só avisa a saída de quem chegou a entrar no chat com um nome
+        if username is not None:
+            websockets.broadcast(other_clients(websocket), ServerBroadcastUserLeft(username=username).model_dump_json())
         print(f"Encerrando conexão com cliente ({client_address})")
 
 async def main():

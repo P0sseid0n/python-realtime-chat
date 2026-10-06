@@ -47,7 +47,30 @@ export interface ServerBroadcastTyping {
 	username: string
 }
 
-export type ServerMessage = ServerAck | ServerError | ServerBroadcastMessage | ServerBroadcastTyping
+export interface ServerBroadcastUsernameChange {
+	event: 'BROADCAST_USERNAME_CHANGE'
+	old_username: string
+	new_username: string
+}
+
+export interface ServerBroadcastUserJoined {
+	event: 'BROADCAST_USER_JOINED'
+	username: string
+}
+
+export interface ServerBroadcastUserLeft {
+	event: 'BROADCAST_USER_LEFT'
+	username: string
+}
+
+export type ServerMessage =
+	| ServerAck
+	| ServerError
+	| ServerBroadcastMessage
+	| ServerBroadcastTyping
+	| ServerBroadcastUsernameChange
+	| ServerBroadcastUserJoined
+	| ServerBroadcastUserLeft
 
 export type ServerEventMap = {
 	[K in ServerMessage['event']]: Extract<ServerMessage, { event: K }>

@@ -13,11 +13,18 @@
 		<div class="app">
 			<header>
 				<h1>Chat Simples</h1>
-				<span class="status is-connecting" id="status" role="status" aria-live="polite">
-					<span class="status-dot" aria-hidden="true"></span>
-					<span class="status-spinner" aria-hidden="true"></span>
-					<span class="status-text">Conectando...</span>
-				</span>
+				<div class="header-info">
+					<div class="current-user" id="current-user" hidden>
+						<span class="current-user-label">Você é</span>
+						<strong class="current-user-name" id="current-user-name"></strong>
+						<button type="button" class="link-button" id="change-username">Trocar</button>
+					</div>
+					<span class="status is-connecting" id="status" role="status" aria-live="polite">
+						<span class="status-dot" aria-hidden="true"></span>
+						<span class="status-spinner" aria-hidden="true"></span>
+						<span class="status-text">Conectando...</span>
+					</span>
+				</div>
 			</header>
 			<main class="chat" id="chat">
 				<div class="msg in">
@@ -40,6 +47,19 @@
 				<button type="submit">Enviar</button>
 			</form>
 		</div>
+
+		<dialog class="username-dialog" id="username-dialog" aria-labelledby="username-title">
+			<form id="username-form" autocomplete="off">
+				<h2 id="username-title">Como quer ser chamado?</h2>
+				<p>Esse nome aparece para as outras pessoas no chat.</p>
+				<input type="text" id="username" name="username" placeholder="Seu nome" maxlength="32" required />
+				<span class="username-error" id="username-error" role="alert"></span>
+				<div class="dialog-actions">
+					<button type="button" class="secondary" id="username-cancel" hidden>Cancelar</button>
+					<button type="submit" id="username-submit">Entrar no chat</button>
+				</div>
+			</form>
+		</dialog>
 
 		<script type="module" src="src/main.ts"></script>
 	</body>

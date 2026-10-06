@@ -11,6 +11,13 @@ function appendMessage(element: HTMLElement) {
 	chat.scrollTop = chat.scrollHeight
 }
 
+function addNotice(text: string) {
+	const element = document.createElement('p')
+	element.className = 'notice'
+	element.textContent = text
+	appendMessage(element)
+}
+
 function addOutgoingMessage(id: string, text: string) {
 	const element = createMessageElement('Você', text, 'out')
 	element.classList.add('is-pending')
@@ -32,4 +39,13 @@ export function initMessages() {
 	onSocketEvent('messageQueued', ({ id, text }) => addOutgoingMessage(id, text))
 	onSocketEvent('messageStatus', ({ id, status }) => setDeliveryStatus(id, status))
 	onSocketEvent('messageReceived', ({ author, text }) => appendMessage(createMessageElement(author, text, 'in')))
+	onSocketEvent('usernameChanged', ({ oldUsername, newUsername }) => addNotice(`${oldUsername} agora é ${newUsername}`))
+	onSocketEvent('userJoined', ({ username }) => addNotice(`${username} entrou no chat`))
+	onSocketEvent('userLeft', ({ username }) => addNotice(`${username} saiu do chat`))
+	onSocketEvent('usernameStatus', ({ username, status, previousUsername }) => {
+		if (status !== 'accepted') return
+
+		if (previousUsername === null) addNotice(`Você entrou no chat como ${username}`)
+		else if (previousUsername !== username) addNotice(`Você agora é ${username}`)
+	})
 }
